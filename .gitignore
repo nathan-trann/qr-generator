@@ -1,0 +1,7 @@
+.agent/
+.venv/
+__pycache__/
+.mypy_cache/
+.eggs/
+.pytest_cache/
+*cache/

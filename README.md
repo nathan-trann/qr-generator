@@ -6,6 +6,19 @@ The QR Tool is a professional-grade, standalone CLI application for generating a
 
 More importantly than its feature set, this project serves as a reference implementation of **Hexagonal Architecture (Ports and Adapters)** in standard Python. It demonstrates how to violently decouple standard I/O (the terminal), business logic (the engine), and third-party dependencies (the underlying QR maths).
 
+### What This Tool Does
+
+`qr_generator` allows you to rapidly generate and decode standard QR codes directly from your terminal.
+
+### The Problem it Solves
+
+Most users rely on ad-riddled, web-based QR generators to create codes. This introduces two major risks:
+
+1. **Security & Privacy:** If you are encoding API keys, secure URLs, or proprietary binary hardware configurations, pasting them into a random website is a catastrophic security vulnerability.
+2. **Friction:** Creating temporary QR codes for mobile-device testing requires switching contexts to a browser.
+
+`qr_generator` solves this by providing a highly testable, universally accessible, and mathematically deterministic local utility that fully supports the Unix Pipeline (`stdin`/`stdout`).
+
 ## Installation
 
 Because this tool relies on advanced image processing and decoding libraries, you must have the `zbar` shared library installed on your system if you are installing natively.
@@ -20,6 +33,52 @@ uv tool install git+https://github.com/nathan-trann/qr-generator
 ```
 
 You can now run `qr_generator` anywhere on your computer.
+
+## Usage
+
+The CLI fully embraces the Unix philosophy. You can provide inputs via arguments, file paths, or pipeline standard input.
+
+### Generating QR Codes ([encode](src/qr_tool/cli/main.py#L30))
+
+**1. Outputting directly to your Terminal**  
+If you do not specify an `--output` file, the QR code renders directly in your terminal for immediate scanning.
+
+```bash
+qr_generator encode --payload "https://github.com/nathan-trann"
+```
+
+**2. Generating a PNG File**  
+Use the `--output` flag to save the image. The format is inferred from the extension.
+
+```bash
+# PNG (Default)
+qr_generator encode --payload "WIFI:S:MyNetwork;T:WPA;P:SuperSecret123;;" --output wifi.png
+
+# SVG (Vector)
+qr_generator encode --payload "WIFI:S:MyNetwork;T:WPA;P:SuperSecret123;;" --output ~/Desktop/my_qr.svg
+```
+
+**3. Encoding Binary Files**  
+The underlying encoder supports raw binary data, which is useful for localized configurations.
+
+```bash
+qr_generator encode --file firmware_config.bin --output config.png
+```
+
+**4. Piping Data via Standard Input (stdin)**
+
+```bash
+cat id_rsa.pub | qr_generator encode --output my_public_key.png
+```
+
+### Decoding QR Codes ([decode](src/qr_tool/cli/main.py#L69))
+
+Extract the contents of an existing QR code image. The decoder will automatically detect if the payload is UTF-8 text or raw Binary Data.
+
+```bash
+qr_generator decode wifi.png
+# Outputs: Decoded result: WIFI:S:MyNetwork;T:WPA;P:SuperSecret123;;
+```
 
 ## Architectural Design
 
